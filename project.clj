@@ -31,12 +31,12 @@
               :compiler {:main pdfjs_component.core
                          :asset-path "js/compiled/out"
                          :output-to "resources/public/js/compiled/pdfjs_component.js"
-                         :externs ["resources/public/js/libs/pdf-externs.js"
-                                   "resources/public/js/libs/pdf.worker-externs.js"]
+                         :externs ["src/libs/pdf-externs.js"
+                                   "src/libs/pdf.worker-externs.js"]
                          :foreign-libs [
-                                        {:file "resources/public/js/libs/pdf.js"
+                                        {:file "src/libs/pdf.js"
                                          :provides ["pdfjs"]}
-                                        {:file "resources/public/js/libs/pdf.worker.js"
+                                        {:file "src/libs/pdf.worker.js"
                                          :provides ["pdfjs_worker"]}
                                         ]
                          :output-dir "resources/public/js/compiled/out"
@@ -45,12 +45,12 @@
               :source-paths ["src"]
               :compiler {:output-to "resources/public/js/compiled/pdfjs_component.js"
                          :main pdfjs_component.core
-                         :externs ["resources/public/js/libs/pdf-externs.js"
-                                   "resources/public/js/libs/pdf.worker-externs.js"]
+                         :externs ["src/libs/pdf-externs.js"
+                                   "src/libs/pdf.worker-externs.js"]
                          :foreign-libs [
-                                        {:file "resources/public/js/libs/pdf.js"
+                                        {:file "src/libs/pdf.js"
                                          :provides ["pdfjs"]}
-                                        {:file "resources/public/js/libs/pdf.worker.js"
+                                        {:file "src/libs/pdf.worker.js"
                                          :provides ["pdfjs_worker"]}
                                         ]
                          :optimizations :advanced
