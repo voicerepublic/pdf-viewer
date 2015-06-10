@@ -4,12 +4,10 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  ;:repositories {"local" ~(str (.toURI (java.io.File. "maven_repository")))}
-
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-3211"]
                  [lucuma "0.3.0"]
-                 [cljsjs/document-register-element "0.2.1-0"]
+                 ;[cljsjs/document-register-element "0.2.1-0"]
                  [org.omcljs/om "0.8.8"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
 

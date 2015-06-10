@@ -13,14 +13,15 @@
 (defonce app-state (atom {:__figwheel_counter 0}))
 
 ;(println (str "Reloads: " (:__figwheel_counter (deref pdfjs_component.core/app-state))))
-
+;
 ;(defn on-js-reload []
 ;  (swap! app-state update-in [:__figwheel_counter] inc)
 ;  )
 
+(def canvas-chan (chan))
+
 ;(defn some-method [el]
 ;  (js/alert "foo"))
-
 
 ;; Webcomponent
 (defwebcomponent pdf-js
@@ -32,14 +33,10 @@
   :on-created #(println (.getAttribute %1 "src" )))
 (l/register pdf-js)
 
-(def canvas-chan (chan))
 
 ;; OM Component
 (defn canvas [data owner]
   (reify
-    ;om/IInitState
-    ;(init-state [_]
-    ;  {:canvas-chan (chan) })
     om/IDidMount
     (did-mount [_]
       (put! canvas-chan "available"))
@@ -48,8 +45,9 @@
       (dom/div nil
         (dom/h1 nil (:text data))
         (dom/p nil "I am a paragraph")
-        (dom/canvas #js {:id "pdf-canvas"})))))
+        (dom/canvas nil)))))
 
+; extend .querySelector
 (extend-type js/NodeList
   ISeqable
   (-seq [array] (array-seq array 0)))
@@ -58,28 +56,31 @@
   {:target (last (.. (.querySelector js/document "pdf-js") -shadowRoot -childNodes))})
 
 
-(go (<! (timeout 2000))
+;; PDFjs
+; extend .-childNodes
+(extend-type js/HTMLCollection
+ ISeqable
+ (-seq [array] (array-seq array 0)))
+
+(go (<! (timeout 10))
   (let [msg (<! canvas-chan)]
-    (cond
-      (= msg "available")
-      (
-        ;; PDFjs
-        (def load-pdf (.getDocument js/PDFJS "./presentation.pdf"))
+  (cond
+    (= msg "available")
+    (let [load-pdf (.getDocument js/PDFJS "./presentation.pdf")
+          load-doc (.then load-pdf (fn [doc] (.getPage doc 1)))]
 
-        (def load-doc (.then load-pdf (fn [doc] (.getPage doc 1))))
-
-        (.then load-doc (fn [page]
-          (let [scale 1.5
-                viewport (.getViewport page scale)
-                canvas (.getElementById js/document "the-canvas")
-                context (.getContext canvas "2d")
-                height (.-height viewport)
-                width (.-width viewport)
-                renderContext (js-obj "canvasContext" context "viewport" viewport)]
-            (.render page renderContext)
-          )))
-      )
-      :else (println ("Unknown message" msg)))))
+      (.then load-doc (fn [page]
+        (let [scale 1.5
+              viewport (.getViewport page scale)
+              ;document.getElementsByTagName("pdf-js").item("div").shadowRoot.lastChild.children[0].childNodes[2]
+              canvas (last (.-childNodes (last (.-children (.-lastChild (.-shadowRoot (.item (.getElementsByTagName js/document "pdf-js") "div")))))))
+              context (.getContext canvas "2d")
+              height (.-height viewport)
+              width (.-width viewport)
+              renderContext (js-obj "canvasContext" context "viewport" viewport)]
+          (.render page renderContext)
+        ))))
+    :else (println ("Unknown message" msg)))))
 
 
 ; tipp from skratl0x1C on #clojurescript
@@ -100,4 +101,5 @@
       (cond
         (= msg "braunz") (println "You wrote BRAUNZ")
         :else (println "STRANGE MESSAGES COMING IN"))))
+
  )
