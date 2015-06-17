@@ -1,3 +1,14 @@
 body {
   background-color: lightgrey;
 }
+
+pdf-js #om-root div {
+}
+
+pdf-js #om-root .pageCount {
+  background-color: darkgoldenrod;
+  float: right;
+}
+
+pdf-js #om-root canvas {
+}

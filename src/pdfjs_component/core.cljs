@@ -20,9 +20,12 @@
       (put! canvas-chan "available"))
     om/IRender
     (render [this]
-      (dom/div nil
+      (dom/div #js {:id "om-root"}
                (dom/h1 nil (:text data))
-               (dom/p nil "I am a paragraph")
+               (dom/div #js {:className "menu"
+                             :style #js { :width (:pdf_width @app-state)}}
+                 (dom/span #js {:className "pageCount"}
+                           (:pdf_pages @app-state)))
                (dom/canvas #js {:height (:pdf_height @app-state)
                                 :width (:pdf_width @app-state)
                                 })))))
@@ -31,12 +34,9 @@
 (defwebcomponent pdf-js
   :document "<div>initial</div>"
   :on-created (fn[elem]
-                (let [src (.getAttribute elem "src")
-                      height (.getAttribute elem "height")
-                      width (.getAttribute elem "width")]
-                  (swap! app-state update-in [:pdf_url] (fn[] src))
-                  (swap! app-state update-in [:pdf_height] (fn[] height))
-                  (swap! app-state update-in [:pdf_width] (fn[] width)))))
+                (swap! app-state update-in [:pdf_url] (fn[] (.getAttribute elem "src")))
+                (swap! app-state update-in [:pdf_height] (fn[] (.getAttribute elem "height")))
+                (swap! app-state update-in [:pdf_width] (fn[] (.getAttribute elem "width")))))
 (l/register pdf-js)
 
 (defn attach-om-root []
@@ -57,8 +57,10 @@
     (let [msg (<! canvas-chan)]
       (cond
         (= msg "available")
+        ;; 1
         (.then (.getDocument js/PDFJS (:pdf_url @app-state))
                (fn[pdf]
+                 (swap! app-state update-in [:pdf_pages] (fn[] (.-numPages pdf)))
                  (.then (.getPage pdf 1)
                         (fn[page]
                           (let [desiredWidth (:pdf_height @app-state)
