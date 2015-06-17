@@ -63,19 +63,19 @@
   (let [msg (<! canvas-chan)]
   (cond
     (= msg "available")
-    (let [load-pdf (.getDocument js/PDFJS "./fixtures/presentation.pdf")
-          load-doc (.then load-pdf (fn [doc] (.getPage doc 1)))]
-
-      (.then load-doc (fn [page]
-        (let [scale 1.5
-              viewport (.getViewport page scale)
-              canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
-              context (.getContext canvas "2d")
-              height (.-height viewport)
-              width (.-width viewport)
-              renderContext (js-obj "canvasContext" context "viewport" viewport)]
-          (.render page renderContext)
-        ))))
+    (.then (.getDocument js/PDFJS "./fixtures/presentation.pdf")
+           (fn[pdf]
+             (.then (.getPage pdf 1)
+                    (fn[page]
+                      (let [scale 1.5
+                            viewport (.getViewport page scale)
+                            canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
+                            context (.getContext canvas "2d")
+                            height (.-height viewport)
+                            width (.-width viewport)
+                            renderContext (js-obj "canvasContext" context "viewport" viewport)]
+                        (.render page renderContext)
+                        )))))
     :else (println ("Unknown message" msg)))))
 
 
@@ -87,5 +87,9 @@
 (comment
 
   (in-ns 'pdfjs_component.core)
+
+; TODOs:
+;      * read pdf url from webcomponent
+;      *
 
  )
