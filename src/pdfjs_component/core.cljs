@@ -42,7 +42,7 @@
 (defn attach-om-root []
   (om/root canvas
            {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
-           {:target (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "div"))}))
+           {:target (.. js/document (querySelector "pdf-js") -shadowRoot (querySelector "div"))}))
 
 ;(defn is-available? [elem]
 ;  (when (nil? (.querySelector js/document elem))
@@ -65,7 +65,7 @@
                                 viewport (.getViewport page 1)
                                 scale (/ desiredWidth (.-width viewport))
                                 scaledViewport (.getViewport page scale)
-                                canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
+                                canvas (.. js/document (querySelector "pdf-js") -shadowRoot (querySelector "canvas"))
                                 context (.getContext canvas "2d")
                                 height (.-height viewport)
                                 width (.-width viewport)
@@ -79,6 +79,6 @@
   (in-ns 'pdfjs_component.core)
 
   ; TODOs:
-  ;      * refactor querySelector into idiomatic cljs
+  ;      *
 
   )
