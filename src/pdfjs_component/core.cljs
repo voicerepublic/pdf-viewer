@@ -31,9 +31,9 @@
     om/IRender
     (render [this]
       (dom/div nil
-        (dom/h1 nil (:text data))
-        (dom/p nil "I am a paragraph")
-        (dom/canvas nil)))))
+               (dom/h1 nil (:text data))
+               (dom/p nil "I am a paragraph")
+               (dom/canvas nil)))))
 
 ;; Webcomponent
 (defwebcomponent pdf-js
@@ -48,7 +48,7 @@
 
 (defn attach-om-root []
   (om/root canvas {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
-    {:target (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "div"))}))
+           {:target (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "div"))}))
 
 ;(defn is-available? [elem]
 ;  (when (nil? (.querySelector js/document elem))
@@ -60,23 +60,23 @@
 
 ;; PDFjs
 (go (<! (timeout 10))
-  (let [msg (<! canvas-chan)]
-  (cond
-    (= msg "available")
-    (.then (.getDocument js/PDFJS "./fixtures/presentation.pdf")
-           (fn[pdf]
-             (.then (.getPage pdf 1)
-                    (fn[page]
-                      (let [scale 1.5
-                            viewport (.getViewport page scale)
-                            canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
-                            context (.getContext canvas "2d")
-                            height (.-height viewport)
-                            width (.-width viewport)
-                            renderContext (js-obj "canvasContext" context "viewport" viewport)]
-                        (.render page renderContext)
-                        )))))
-    :else (println ("Unknown message" msg)))))
+    (let [msg (<! canvas-chan)]
+      (cond
+        (= msg "available")
+        (.then (.getDocument js/PDFJS "./fixtures/presentation.pdf")
+               (fn[pdf]
+                 (.then (.getPage pdf 1)
+                        (fn[page]
+                          (let [scale 1.5
+                                viewport (.getViewport page scale)
+                                canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
+                                context (.getContext canvas "2d")
+                                height (.-height viewport)
+                                width (.-width viewport)
+                                renderContext (js-obj "canvasContext" context "viewport" viewport)]
+                            (.render page renderContext)
+                            )))))
+        :else (println ("Unknown message" msg)))))
 
 
 ; tipp from skratl0x1C on #clojurescript
@@ -88,8 +88,8 @@
 
   (in-ns 'pdfjs_component.core)
 
-; TODOs:
-;      * read pdf url from webcomponent
-;      *
+  ; TODOs:
+  ;      * read pdf url from webcomponent
+  ;      *
 
- )
+  )
