@@ -6,7 +6,6 @@
             [cljs.core.async :refer [put! chan <! timeout]]
             [pdfjs]))
 
-
 (enable-console-print!)
 
 (defonce app-state (atom {:pdf_url nil}))
@@ -24,12 +23,20 @@
       (dom/div nil
                (dom/h1 nil (:text data))
                (dom/p nil "I am a paragraph")
-               (dom/canvas nil)))))
+               (dom/canvas #js {:height (:pdf_height @app-state)
+                                :width (:pdf_width @app-state)
+                                })))))
 
 ;; Webcomponent
 (defwebcomponent pdf-js
   :document "<div>initial</div>"
-  :on-created #(swap! app-state update-in [:pdf_url] (fn[] (.getAttribute %1 "src" ))))
+  :on-created (fn[elem]
+                (let [src (.getAttribute elem "src")
+                      height (.getAttribute elem "height")
+                      width (.getAttribute elem "width")]
+                  (swap! app-state update-in [:pdf_url] (fn[] src))
+                  (swap! app-state update-in [:pdf_height] (fn[] height))
+                  (swap! app-state update-in [:pdf_width] (fn[] width)))))
 (l/register pdf-js)
 
 (defn attach-om-root []
@@ -54,13 +61,15 @@
                (fn[pdf]
                  (.then (.getPage pdf 1)
                         (fn[page]
-                          (let [scale 1.5
-                                viewport (.getViewport page scale)
+                          (let [desiredWidth (:pdf_height @app-state)
+                                viewport (.getViewport page 1)
+                                scale (/ desiredWidth (.-width viewport))
+                                scaledViewport (.getViewport page scale)
                                 canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
                                 context (.getContext canvas "2d")
                                 height (.-height viewport)
                                 width (.-width viewport)
-                                renderContext (js-obj "canvasContext" context "viewport" viewport)]
+                                renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
                             (.render page renderContext)
                             )))))
         :else (println ("Unknown message" msg)))))
@@ -70,6 +79,6 @@
   (in-ns 'pdfjs_component.core)
 
   ; TODOs:
-  ;      *
+  ;      * refactor querySelector into idiomatic cljs
 
   )
