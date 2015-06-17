@@ -8,27 +8,11 @@
 
 (enable-console-print!)
 
-(defonce app-state (atom {:pdf_url nil}))
+(defonce app-state (atom {:pdf_url nil
+                          :pdf_pages [0]
+                          }))
 
 (def canvas-chan (chan))
-
-;; OM Component
-(defn canvas [data owner]
-  (reify
-    om/IDidMount
-    (did-mount [_]
-      (put! canvas-chan "available"))
-    om/IRender
-    (render [this]
-      (dom/div #js {:id "om-root"}
-               (dom/h1 nil (:text data))
-               (dom/div #js {:className "menu"
-                             :style #js { :width (:pdf_width @app-state)}}
-                 (dom/span #js {:className "pageCount"}
-                           (:pdf_pages @app-state)))
-               (dom/canvas #js {:height (:pdf_height @app-state)
-                                :width (:pdf_width @app-state)
-                                })))))
 
 ;; Webcomponent
 (defwebcomponent pdf-js
@@ -39,9 +23,27 @@
                 (swap! app-state update-in [:pdf_width] (fn[] (.getAttribute elem "width")))))
 (l/register pdf-js)
 
+;; OM Component
+(defn pdf-component-view [cursor owner]
+  (reify
+    om/IDidMount
+    (did-mount [_]
+      (put! canvas-chan "available"))
+    om/IRender
+    (render [this]
+      (dom/div #js {:id "om-root"}
+               (dom/div #js {:className "menu"
+                             :style #js { :width (:pdf_width @app-state)}}
+                 (dom/span #js {:className "pageCount"}
+                           (get-in cursor [:pdf_pages 0])))
+               (dom/canvas #js {:height (:pdf_height @app-state)
+                                :width (:pdf_width @app-state)
+                                })))))
+
+
 (defn attach-om-root []
-  (om/root canvas
-           {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
+  (om/root pdf-component-view
+           app-state
            {:target (.. js/document (querySelector "pdf-js") -shadowRoot (querySelector "div"))}))
 
 ;(defn is-available? [elem]
@@ -53,27 +55,30 @@
 (js/setTimeout (fn[] (attach-om-root)) 250)
 
 ;; PDFjs
+(defn render-page [pdf num]
+  (.then (.getPage pdf num)
+         (fn[page]
+           (let [desiredWidth (:pdf_height @app-state)
+                 viewport (.getViewport page 1)
+                 scale (/ desiredWidth (.-width viewport))
+                 scaledViewport (.getViewport page scale)
+                 canvas (.. js/document (querySelector "pdf-js") -shadowRoot (querySelector "canvas"))
+                 context (.getContext canvas "2d")
+                 height (.-height viewport)
+                 width (.-width viewport)
+                 renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
+             (.render page renderContext)
+             ))))
+
 (go (<! (timeout 10))
     (let [msg (<! canvas-chan)]
       (cond
         (= msg "available")
-        ;; 1
         (.then (.getDocument js/PDFJS (:pdf_url @app-state))
                (fn[pdf]
-                 (swap! app-state update-in [:pdf_pages] (fn[] (.-numPages pdf)))
-                 (.then (.getPage pdf 1)
-                        (fn[page]
-                          (let [desiredWidth (:pdf_height @app-state)
-                                viewport (.getViewport page 1)
-                                scale (/ desiredWidth (.-width viewport))
-                                scaledViewport (.getViewport page scale)
-                                canvas (.. js/document (querySelector "pdf-js") -shadowRoot (querySelector "canvas"))
-                                context (.getContext canvas "2d")
-                                height (.-height viewport)
-                                width (.-width viewport)
-                                renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
-                            (.render page renderContext)
-                            )))))
+                 (swap! app-state update-in [:pdf_pages 0] #(.-numPages pdf))
+                 (render-page pdf 1)))
+        ;; 1
         :else (println ("Unknown message" msg)))))
 
 (comment
