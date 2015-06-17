@@ -27,17 +27,9 @@
                (dom/canvas nil)))))
 
 ;; Webcomponent
-
-;(defn some-method [el]
-;  (js/alert "foo"))
-
 (defwebcomponent pdf-js
   :document "<div>initial</div>"
-  :style "* { color: green; }"
-  :properties {:threshold 10}
-  ;:methods {:method some-method}
   :on-created #(swap! app-state update-in [:pdf_url] (fn[] (.getAttribute %1 "src" ))))
-
 (l/register pdf-js)
 
 (defn attach-om-root []
@@ -50,7 +42,7 @@
 ;    (js/setTimeout (fn[] (is-available? elem)) 10)
 ;  true))
 
-; This works, but should be improved with something like is-available?
+; TODO: This works, but should be improved with something like is-available?
 (js/setTimeout (fn[] (attach-om-root)) 250)
 
 ;; PDFjs
