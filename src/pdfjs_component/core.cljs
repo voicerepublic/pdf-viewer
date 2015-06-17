@@ -9,18 +9,9 @@
 
 (enable-console-print!)
 
-(defonce app-state (atom {:__figwheel_counter 0}))
-
-;(println (str "Reloads: " (:__figwheel_counter (deref pdfjs_component.core/app-state))))
-;
-;(defn on-js-reload []
-;  (swap! app-state update-in [:__figwheel_counter] inc)
-;  )
+(defonce app-state (atom {:pdf_url nil}))
 
 (def canvas-chan (chan))
-
-;(defn some-method [el]
-;  (js/alert "foo"))
 
 ;; OM Component
 (defn canvas [data owner]
@@ -36,18 +27,22 @@
                (dom/canvas nil)))))
 
 ;; Webcomponent
+
+;(defn some-method [el]
+;  (js/alert "foo"))
+
 (defwebcomponent pdf-js
   :document "<div>initial</div>"
   :style "* { color: green; }"
   :properties {:threshold 10}
   ;:methods {:method some-method}
-  ; TODO: Remember src url
-  :on-created #(println (.getAttribute %1 "src" )))
+  :on-created #(swap! app-state update-in [:pdf_url] (fn[] (.getAttribute %1 "src" ))))
 
 (l/register pdf-js)
 
 (defn attach-om-root []
-  (om/root canvas {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
+  (om/root canvas
+           {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
            {:target (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "div"))}))
 
 ;(defn is-available? [elem]
@@ -63,7 +58,7 @@
     (let [msg (<! canvas-chan)]
       (cond
         (= msg "available")
-        (.then (.getDocument js/PDFJS "./fixtures/presentation.pdf")
+        (.then (.getDocument js/PDFJS (:pdf_url @app-state))
                (fn[pdf]
                  (.then (.getPage pdf 1)
                         (fn[page]
@@ -78,18 +73,11 @@
                             )))))
         :else (println ("Unknown message" msg)))))
 
-
-; tipp from skratl0x1C on #clojurescript
-; imo it's just: (.then my-promise (fn [v] (put! out v)))
-; alt:
-;     (defn promise->chan [p] (let [c (chan)] (.then p (fn [x] (put! c x))) c))
-
 (comment
 
   (in-ns 'pdfjs_component.core)
 
   ; TODOs:
-  ;      * read pdf url from webcomponent
   ;      *
 
   )
