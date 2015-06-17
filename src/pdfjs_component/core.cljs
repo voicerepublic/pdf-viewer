@@ -4,7 +4,6 @@
             [om.core :as om]
             [om.dom :as dom]
             [cljs.core.async :refer [put! chan <! timeout]]
-            [pdfjs_worker]
             [pdfjs]))
 
 
@@ -23,17 +22,6 @@
 ;(defn some-method [el]
 ;  (js/alert "foo"))
 
-;; Webcomponent
-(defwebcomponent pdf-js
-  :document "<div>initial</div>"
-  :style "* { color: green; }"
-  :properties {:threshold 10}
-  ;:methods {:method some-method}
-  ; TODO: Remember src url
-  :on-created #(println (.getAttribute %1 "src" )))
-(l/register pdf-js)
-
-
 ;; OM Component
 (defn canvas [data owner]
   (reify
@@ -47,33 +35,41 @@
         (dom/p nil "I am a paragraph")
         (dom/canvas nil)))))
 
-; extend .querySelector
-(extend-type js/NodeList
-  ISeqable
-  (-seq [array] (array-seq array 0)))
+;; Webcomponent
+(defwebcomponent pdf-js
+  :document "<div>initial</div>"
+  :style "* { color: green; }"
+  :properties {:threshold 10}
+  ;:methods {:method some-method}
+  ; TODO: Remember src url
+  :on-created #(println (.getAttribute %1 "src" )))
 
-(om/root canvas {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
-  {:target (last (.. (.querySelector js/document "pdf-js") -shadowRoot -childNodes))})
+(l/register pdf-js)
 
+(defn attach-om-root []
+  (om/root canvas {:text "Crazy stack: PDFJS (Promise based API) -> Om -> ReactJS -> Lucuma -> Webcomponent (with Figwheel)"}
+    {:target (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "div"))}))
+
+;(defn is-available? [elem]
+;  (when (nil? (.querySelector js/document elem))
+;    (js/setTimeout (fn[] (is-available? elem)) 10)
+;  true))
+
+; This works, but should be improved with something like is-available?
+(js/setTimeout (fn[] (attach-om-root)) 250)
 
 ;; PDFjs
-; extend .-childNodes
-(extend-type js/HTMLCollection
- ISeqable
- (-seq [array] (array-seq array 0)))
-
 (go (<! (timeout 10))
   (let [msg (<! canvas-chan)]
   (cond
     (= msg "available")
-    (let [load-pdf (.getDocument js/PDFJS "./presentation.pdf")
+    (let [load-pdf (.getDocument js/PDFJS "./fixtures/presentation.pdf")
           load-doc (.then load-pdf (fn [doc] (.getPage doc 1)))]
 
       (.then load-doc (fn [page]
         (let [scale 1.5
               viewport (.getViewport page scale)
-              ;document.getElementsByTagName("pdf-js").item("div").shadowRoot.lastChild.children[0].childNodes[2]
-              canvas (last (.-childNodes (last (.-children (.-lastChild (.-shadowRoot (.item (.getElementsByTagName js/document "pdf-js") "div")))))))
+              canvas (.. (.querySelector js/document "pdf-js") -shadowRoot (querySelector "canvas"))
               context (.getContext canvas "2d")
               height (.-height viewport)
               width (.-width viewport)
@@ -91,15 +87,5 @@
 (comment
 
   (in-ns 'pdfjs_component.core)
-
-  (def c (chan))
-
-  (put! c "braunz")
-
-  (go (<! (timeout 2000))
-    (let [msg (<! c)]
-      (cond
-        (= msg "braunz") (println "You wrote BRAUNZ")
-        :else (println "STRANGE MESSAGES COMING IN"))))
 
  )
