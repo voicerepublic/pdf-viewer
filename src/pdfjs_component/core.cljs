@@ -9,7 +9,8 @@
 (enable-console-print!)
 
 (defonce app-state (atom {:pdf_url nil
-                          :pdf_pages [0]
+                          :navigation {
+                                       :pdf_page_count [0]}
                           }))
 
 (def canvas-chan (chan))
@@ -24,6 +25,13 @@
 (l/register pdf-js)
 
 ;; OM Component
+(defn pdf-navigation-view [cursor owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/span #js {:className "pageCount"}
+                (str "pages: " (get-in cursor [:pdf_page_count 0]))))))
+
 (defn pdf-component-view [cursor owner]
   (reify
     om/IDidMount
@@ -34,16 +42,14 @@
       (dom/div #js {:id "om-root"}
                (dom/div #js {:className "menu"
                              :style #js { :width (:pdf_width @app-state)}}
-                 (dom/span #js {:className "pageCount"}
-                           (get-in cursor [:pdf_pages 0])))
+                               (om/build pdf-navigation-view (cursor :navigation)))
                (dom/canvas #js {:height (:pdf_height @app-state)
                                 :width (:pdf_width @app-state)
                                 })))))
 
 
 (defn attach-om-root []
-  (om/root pdf-component-view
-           app-state
+  (om/root pdf-component-view app-state
            {:target (.. js/document (querySelector "pdf-js") -shadowRoot (querySelector "div"))}))
 
 ;(defn is-available? [elem]
@@ -76,7 +82,7 @@
         (= msg "available")
         (.then (.getDocument js/PDFJS (:pdf_url @app-state))
                (fn[pdf]
-                 (swap! app-state update-in [:pdf_pages 0] #(.-numPages pdf))
+                 (swap! app-state update-in [:navigation :pdf_page_count 0] #(.-numPages pdf))
                  (render-page pdf 1)))
         ;; 1
         :else (println ("Unknown message" msg)))))
