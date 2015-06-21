@@ -7,10 +7,11 @@
 
 (enable-console-print!)
 
-(defonce app-state (atom {:pdf_url nil
+(defonce app-state (atom {:pdf nil
+                          :pdf_url nil
                           :navigation {
                                        :pdf_page_count [0]
-                                       :click_count [0]}
+                                       :current_page [1]}
                           }))
 
 (def canvas-chan (chan))
@@ -20,19 +21,46 @@
 (let [component (PDFComponent.)]
   (.appendChild (.-body js/document) component))
 
+;; PDFjs helper function
+(defn render-page []
+  (let [pdf (:pdf @app-state)
+        page-num (get-in @app-state [:navigation :current_page 0])]
+    (.then (.getPage pdf page-num)
+           (fn[page]
+
+             (let [desiredWidth (:pdf_height @app-state)
+                   viewport (.getViewport page 1)
+                   scale (/ desiredWidth (.-width viewport))
+                   scaledViewport (.getViewport page scale)
+                   canvas (.. js/document (querySelector "x-pdf-component") (querySelector "canvas"))
+                   context (.getContext canvas "2d")
+                   height (.-height viewport)
+                   width (.-width viewport)
+                   renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
+
+               (.render page renderContext)
+
+               )))))
+
 ;; OM Component
 (defn pdf-navigation-view [cursor owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div nil
-               (dom/span nil
-                         (str "Click count: " (get-in cursor [:click_count 0])))
-               (dom/button #js {:onClick (fn[e]
-                                           (om/transact! cursor [:click_count 0] inc))}
-                           "click me!")
-               (dom/span #js {:className "pageCount"}
-                         (str "pages: " (get-in cursor [:pdf_page_count 0])))))))
+      (let [current_page (get-in cursor [:current_page 0])]
+        (dom/div nil
+                 (dom/span nil
+                           (str "Current page: " current_page))
+                 (dom/button #js {:onClick (fn[e]
+                                             (swap! app-state update-in [:navigation :current_page 0] #(dec %))
+                                             (render-page))}
+                             "<")
+                 (dom/button #js {:onClick (fn[e]
+                                             (swap! app-state update-in [:navigation :current_page 0] #(inc %))
+                                             (render-page))}
+                             ">")
+                 (dom/span #js {:className "pageCount"}
+                           (str "pages: " (get-in cursor [:pdf_page_count 0]))))))))
 
 (defn pdf-component-view [cursor owner]
   (reify
@@ -54,12 +82,11 @@
   (om/root pdf-component-view app-state
            {:target (.. js/document (querySelector "x-pdf-component"))}))
 
+; TODO: This works, but there is a callback from Polymer that tells when the
+; component is ready!
 (defn get-attr[attr]
   (.. (.querySelector js/document "x-pdf-component") (getAttribute attr)))
 
-
-; TODO: This works, but there is a callback from Polymer that tells when the
-; component is ready!
 (js/setTimeout
   (fn[]
     ; TODO: This could be done in the .createdCallback handler when registering
@@ -71,20 +98,6 @@
     ) 250)
 
 ;; PDFjs
-(defn render-page [pdf num]
-  (.then (.getPage pdf num)
-         (fn[page]
-           (let [desiredWidth (:pdf_height @app-state)
-                 viewport (.getViewport page 1)
-                 scale (/ desiredWidth (.-width viewport))
-                 scaledViewport (.getViewport page scale)
-                 canvas (.. js/document (querySelector "x-pdf-component") (querySelector "canvas"))
-                 context (.getContext canvas "2d")
-                 height (.-height viewport)
-                 width (.-width viewport)
-                 renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
-             (.render page renderContext)
-             ))))
 
 (go (<! (timeout 10))
     (let [msg (<! canvas-chan)]
@@ -92,8 +105,9 @@
         (= msg "available")
         (.then (.getDocument js/PDFJS (:pdf_url @app-state))
                (fn[pdf]
+                 (swap! app-state assoc :pdf pdf)
                  (swap! app-state update-in [:navigation :pdf_page_count 0] #(.-numPages pdf))
-                 (render-page pdf 1)))
+                 (render-page)))
         ;; 1
         :else (println ("Unknown message" msg)))))
 
