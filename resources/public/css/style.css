@@ -2,13 +2,7 @@ body {
   background-color: lightgrey;
 }
 
-pdf-js #om-root div {
-}
-
-pdf-js #om-root .pageCount {
-  background-color: darkgoldenrod;
-  float: right;
-}
-
-pdf-js #om-root canvas {
+x-pdf-component #om-root .navigation {
+  text-align: center;
+  border: 2px solid grey;
 }

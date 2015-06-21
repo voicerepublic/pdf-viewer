@@ -31,7 +31,7 @@
              (let [desiredWidth (:pdf_height @app-state)
                    viewport (.getViewport page 1)
                    scale (/ desiredWidth (.-width viewport))
-                   scaledViewport (.getViewport page scale)
+                   scaledViewport (.getViewport page (* 1.3 scale))
                    canvas (.. js/document (querySelector "x-pdf-component") (querySelector "canvas"))
                    context (.getContext canvas "2d")
                    height (.-height viewport)
@@ -48,19 +48,17 @@
     om/IRender
     (render [this]
       (let [current_page (get-in cursor [:current_page 0])]
-        (dom/div nil
-                 (dom/span nil
-                           (str "Current page: " current_page))
+        (dom/div #js {:className "navigation"}
                  (dom/button #js {:onClick (fn[e]
                                              (swap! app-state update-in [:navigation :current_page 0] #(dec %))
                                              (render-page))}
                              "<")
+                 (dom/span nil
+                           (str current_page " of " (get-in cursor [:pdf_page_count 0])))
                  (dom/button #js {:onClick (fn[e]
                                              (swap! app-state update-in [:navigation :current_page 0] #(inc %))
                                              (render-page))}
-                             ">")
-                 (dom/span #js {:className "pageCount"}
-                           (str "pages: " (get-in cursor [:pdf_page_count 0]))))))))
+                             ">"))))))
 
 (defn pdf-component-view [cursor owner]
   (reify
