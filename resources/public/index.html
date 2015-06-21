@@ -3,16 +3,17 @@
   <head>
     <link href="css/style.css" rel="stylesheet" type="text/css">
 
-    <script src="polymer/components/bower_components/webcomponentsjs/ShadowDOM.min.js"></script>
     <script src="polymer/components/bower_components/webcomponentsjs/webcomponents.min.js"></script>
 
   </head>
   <body>
     <div id="app">
 
-      <pdf-js src="fixtures/presentation.pdf" height="480" width="640"></pdf-js>
+      <x-pdf-component src="fixtures/presentation.pdf" height="480" width="640"></x-pdf-component>
 
-      <div id="om-testing"></div>
+      <div id="om-testing">
+        <div></div>
+      </div>
 
       <canvas id="the-canvas"></canvas>
 
