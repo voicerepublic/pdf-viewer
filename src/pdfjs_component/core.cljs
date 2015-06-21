@@ -17,11 +17,19 @@
 (def canvas-chan (chan))
 
 ;; Webcomponent
-(defonce PDFComponent (.registerElement js/document "x-pdf-component"))
-(let [component (PDFComponent.)]
-  (.appendChild (.-body js/document) component))
+(cond
+  (not (.. js/document (querySelector "x-pdf-component")))
+  ((def PDFComponent (.registerElement js/document "x-pdf-component"))
+  (let [component (PDFComponent.)]
+      (.appendChild (.-body js/document) component))))
+
+(defn valid-page? [page-num]
+  (let [page-count (get-in @app-state [:navigation :pdf_page_count 0])]
+    (and (> page-num 0) (<= page-num page-count))))
 
 ;; PDFjs helper function
+;; TODO:
+;;   * Do the grunt work only once instead of on every render
 (defn render-page []
   (let [pdf (:pdf @app-state)
         page-num (get-in @app-state [:navigation :current_page 0])]
@@ -38,7 +46,10 @@
                    width (.-width viewport)
                    renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
 
-               (.render page renderContext)
+               ;; TODO: Eval employing the renderTask promise of PDFjs
+               (cond
+                 (valid-page? page-num)
+                 (.render page renderContext))
 
                )))))
 
@@ -50,6 +61,9 @@
       (let [current_page (get-in cursor [:current_page 0])]
         (dom/div #js {:className "navigation"}
                  (dom/button #js {:onClick (fn[e]
+                                             ; TODO:
+                                             ;   * Is this the right place to set the current_page?
+                                             ;   * Validation: valid-page?
                                              (swap! app-state update-in [:navigation :current_page 0] #(dec %))
                                              (render-page))}
                              "<")
@@ -70,7 +84,7 @@
       (dom/div #js {:id "om-root"}
                (dom/div #js {:className "menu"
                              :style #js { :width (:pdf_width @app-state)}}
-                               (om/build pdf-navigation-view (cursor :navigation)))
+                        (om/build pdf-navigation-view (cursor :navigation)))
                (dom/canvas #js {:height (:pdf_height @app-state)
                                 :width (:pdf_width @app-state)
                                 })))))
@@ -80,8 +94,6 @@
   (om/root pdf-component-view app-state
            {:target (.. js/document (querySelector "x-pdf-component"))}))
 
-; TODO: This works, but there is a callback from Polymer that tells when the
-; component is ready!
 (defn get-attr[attr]
   (.. (.querySelector js/document "x-pdf-component") (getAttribute attr)))
 
@@ -92,6 +104,8 @@
     (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
     (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
     (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
+    ; TODO: This works, but there is a callback from Polymer that tells when the
+    ; component is ready!
     (attach-om-root)
     ) 250)
 
