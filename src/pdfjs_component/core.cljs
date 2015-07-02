@@ -30,9 +30,8 @@
 ;; PDFjs helper function
 ;; TODO:
 ;;   * Do the grunt work only once instead of on every render
-(defn render-page []
-  (let [pdf (:pdf @app-state)
-        page-num (get-in @app-state [:navigation :current_page 0])]
+(defn render-page [page-num]
+  (let [pdf (:pdf @app-state)]
     (.then (.getPage pdf page-num)
            (fn[page]
 
@@ -47,11 +46,10 @@
                    renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
 
                ;; TODO: Eval employing the renderTask promise of PDFjs
-               (cond
-                 (valid-page? page-num)
-                 (.render page renderContext))
-
-               )))))
+               (if (valid-page? page-num)
+                 (do
+                   (.render page renderContext)
+                   (swap! app-state update-in [:navigation :current_page 0] (constantly page-num)))))))))
 
 ;; OM Component
 (defn pdf-navigation-view [cursor owner]
@@ -61,17 +59,12 @@
       (let [current_page (get-in cursor [:current_page 0])]
         (dom/div #js {:className "navigation"}
                  (dom/button #js {:onClick (fn[e]
-                                             ; TODO:
-                                             ;   * Is this the right place to set the current_page?
-                                             ;   * Validation: valid-page?
-                                             (swap! app-state update-in [:navigation :current_page 0] #(dec %))
-                                             (render-page))}
+                                             (render-page (dec current_page)))}
                              "<")
                  (dom/span nil
                            (str current_page " of " (get-in cursor [:pdf_page_count 0])))
                  (dom/button #js {:onClick (fn[e]
-                                             (swap! app-state update-in [:navigation :current_page 0] #(inc %))
-                                             (render-page))}
+                                             (render-page (inc current_page)))}
                              ">"))))))
 
 (defn pdf-component-view [cursor owner]
@@ -119,8 +112,7 @@
                (fn[pdf]
                  (swap! app-state assoc :pdf pdf)
                  (swap! app-state update-in [:navigation :pdf_page_count 0] #(.-numPages pdf))
-                 (render-page)))
-        ;; 1
+                 (render-page 1)))
         :else (println ("Unknown message" msg)))))
 
 (comment
