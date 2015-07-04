@@ -56,7 +56,7 @@
     (render [this]
       (let [current_page (get-in cursor [:current_page 0])
             page_count (get-in cursor [:page_count 0])]
-        (dom/span nil
+        (dom/span #js {:className "pageCount" }
                   (str current_page " of " page_count))))))
 
 (defn render-page-if-valid [cursor f]
@@ -71,7 +71,7 @@
     om/IRender
     (render [this]
       (let [current_page (get-in cursor [:current_page 0])]
-        (dom/span nil
+        (dom/span #js {:className "navButtons" }
           (dom/button #js {:onClick (fn[e]
                                           (render-page-if-valid cursor dec))}
                       "<")
@@ -87,28 +87,29 @@
                (om/build pdf-navigation-buttons cursor)
                (om/build pdf-navigation-position cursor)))))
 
-;; PDFjs
-(defn render-pdfjs []
-  (.then (.getDocument js/PDFJS (:pdf_url @app-state))
-         (fn[pdf]
-           (swap! app-state assoc :pdf pdf)
-           (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
-           (render-page))))
-
-(defn pdf-component-view [cursor owner]
+(defn pdfjs-viewer [cursor owner]
   (reify
     om/IDidMount
     (did-mount [_]
-      (render-pdfjs))
+      (.then (.getDocument js/PDFJS (:pdf_url @app-state))
+             (fn[pdf]
+               (swap! app-state assoc :pdf pdf)
+               (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
+               (render-page))))
+    om/IRender
+    (render [this]
+       (dom/canvas #js {:height (:pdf_height @app-state)
+                        :width (:pdf_width @app-state)}))))
+
+(defn pdf-component-view [cursor owner]
+  (reify
     om/IRender
     (render [this]
       (dom/div #js {:id "om-root"}
                (dom/div #js {:className "menu"
                              :style #js { :width (:pdf_width @app-state)}}
                         (om/build pdf-navigation-view (cursor :navigation)))
-               (dom/canvas #js {:height (:pdf_height @app-state)
-                                :width (:pdf_width @app-state)
-                                })))))
+               (om/build pdfjs-viewer cursor)))))
 
 (defn attach-om-root []
   (om/root pdf-component-view app-state

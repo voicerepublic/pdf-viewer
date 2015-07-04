@@ -6,3 +6,7 @@ x-pdf-component #om-root .navigation {
   text-align: center;
   border: 2px solid grey;
 }
+
+x-pdf-component #om-root .navigation .navButtons {
+  float: right;
+}
