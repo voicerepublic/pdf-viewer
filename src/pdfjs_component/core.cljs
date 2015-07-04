@@ -59,6 +59,13 @@
         (dom/span nil
                   (str current_page " of " page_count))))))
 
+(defn render-page-if-valid [cursor f]
+  (let [current_page (get-in cursor [:current_page 0])]
+    (if (valid-page? (f current_page))
+      (do
+        (om/transact! cursor [:current_page 0] f)
+        (render-page)))))
+
 (defn pdf-navigation-buttons [cursor owner]
   (reify
     om/IRender
@@ -66,16 +73,10 @@
       (let [current_page (get-in cursor [:current_page 0])]
         (dom/span nil
           (dom/button #js {:onClick (fn[e]
-                                      (if (valid-page? (dec current_page))
-                                        (do
-                                          (om/transact! cursor [:current_page 0] dec)
-                                          (render-page))))}
+                                          (render-page-if-valid cursor dec))}
                       "<")
           (dom/button #js {:onClick (fn[e]
-                                      (if (valid-page? (inc current_page))
-                                        (do
-                                          (om/transact! cursor [:current_page 0] inc)
-                                          (render-page))))}
+                                          (render-page-if-valid cursor inc))}
                       ">"))))))
 
 (defn pdf-navigation-view [cursor owner]
@@ -108,7 +109,6 @@
                (dom/canvas #js {:height (:pdf_height @app-state)
                                 :width (:pdf_width @app-state)
                                 })))))
-
 
 (defn attach-om-root []
   (om/root pdf-component-view app-state
