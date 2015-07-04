@@ -1,7 +1,7 @@
 # PDFjs Component
 
 A [React](http://facebook.github.io/react/) component providing a convenient
-PDF viewer based on [PDFjs](https://github.com/mozilla/pdf.js) written in
+PDF viewer based on [PDFjs](https://github.com/mozilla/pdf.js). Written in
 [ClojureScript](http://github.com/clojure/clojurescript).
 
 The component enables you to use a new HTML tag `x-pdf-component` that can be
