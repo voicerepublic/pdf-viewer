@@ -36,7 +36,7 @@
                          :source-map-timestamp true }}
              {:id "min"
               :source-paths ["src"]
-              :compiler {:output-to "resources/public/js/compiled/pdfjs_component.js"
+              :compiler {:output-to "dist/pdfjs_component.js"
                          :main pdfjs_component.core
                          :externs ["src/libs/pdf-externs.js"]
                          :foreign-libs [
