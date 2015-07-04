@@ -108,18 +108,21 @@
 (defn get-attr[attr]
   (.. (.querySelector js/document "x-pdf-component") (getAttribute attr)))
 
-(js/setTimeout
-  (fn[]
-    ; TODO: This could be done in the .createdCallback handler when registering
-    ; the web-component
-    (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
-    (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
-    (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
-    ; TODO: This works, but there is a callback from the Webcomponent that
-    ; tells when it is ready!
-    (attach-om-root)
-    ) 250)
+(defn main []
+  (js/setTimeout
+    (fn[]
+      ; TODO: This could be done in the .createdCallback handler when registering
+      ; the web-component
+      (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
+      (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
+      (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
+      ; TODO: This works, but there is a callback from the Webcomponent that
+      ; tells when it is ready!
+      (attach-om-root)
+      ) 250))
 
+
+(defonce initial-run (main))
 
 
 (comment
