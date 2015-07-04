@@ -1,10 +1,12 @@
-body {
+x-pdf-component #om-root {
   background-color: lightgrey;
+  border: 5px solid lightgrey;
 }
+
 
 x-pdf-component #om-root .navigation {
   text-align: center;
-  border: 2px solid grey;
+  padding: 5px;
 }
 
 x-pdf-component #om-root .navigation .navButtons {

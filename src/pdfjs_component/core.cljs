@@ -14,15 +14,6 @@
                                        :current_page [1]}
                           }))
 
-;; Webcomponent
-;; TODO: Use defonce
-(if
-  (not (.. js/document (querySelector "x-pdf-component")))
-  (do
-    (def PDFComponent (.registerElement js/document "x-pdf-component"))
-    (let [component (PDFComponent.)]
-      (.appendChild (.-body js/document) component))))
-
 (defn valid-page? [page-num]
   (let [page-count (get-in @app-state [:navigation :page_count 0])]
     (and (> page-num 0) (<= page-num page-count))))
@@ -39,13 +30,12 @@
              (let [desiredWidth (:pdf_height @app-state)
                    viewport (.getViewport page 1)
                    scale (/ desiredWidth (.-width viewport))
-                   scaledViewport (.getViewport page (* 1.3 scale))
+                   scaledViewport (.getViewport page (* 1.35 scale))
                    canvas (.. js/document (querySelector "x-pdf-component") (querySelector "canvas"))
                    context (.getContext canvas "2d")
                    height (.-height viewport)
                    width (.-width viewport)
                    renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
-
                ;; TODO: Eval employing the renderTask promise of PDFjs
                (.render page renderContext))))))
 
@@ -72,12 +62,12 @@
     (render [this]
       (let [current_page (get-in cursor [:current_page 0])]
         (dom/span #js {:className "navButtons" }
-          (dom/button #js {:onClick (fn[e]
-                                          (render-page-if-valid cursor dec))}
-                      "<")
-          (dom/button #js {:onClick (fn[e]
-                                          (render-page-if-valid cursor inc))}
-                      ">"))))))
+                  (dom/button #js {:onClick (fn[e]
+                                              (render-page-if-valid cursor dec))}
+                              "<")
+                  (dom/button #js {:onClick (fn[e]
+                                              (render-page-if-valid cursor inc))}
+                              ">"))))))
 
 (defn pdf-navigation-view [cursor owner]
   (reify
@@ -98,16 +88,16 @@
                (render-page))))
     om/IRender
     (render [this]
-       (dom/canvas #js {:height (:pdf_height @app-state)
-                        :width (:pdf_width @app-state)}))))
+      (dom/canvas #js {:height (:pdf_height @app-state)
+                       :width (:pdf_width @app-state)}))))
 
 (defn pdf-component-view [cursor owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:id "om-root"}
-               (dom/div #js {:className "menu"
-                             :style #js { :width (:pdf_width @app-state)}}
+      (dom/div #js {:id "om-root"
+                    :style #js { :width (:pdf_width @app-state)}}
+               (dom/div #js {:className "menu" }
                         (om/build pdf-navigation-view (cursor :navigation)))
                (om/build pdfjs-viewer cursor)))))
 
@@ -125,8 +115,8 @@
     (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
     (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
     (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
-    ; TODO: This works, but there is a callback from Polymer that tells when the
-    ; component is ready!
+    ; TODO: This works, but there is a callback from the Webcomponent that
+    ; tells when it is ready!
     (attach-om-root)
     ) 250)
 
