@@ -10,7 +10,7 @@
 (defonce app-state (atom {:pdf nil
                           :pdf_url nil
                           :navigation {
-                                       :pdf_page_count [0]
+                                       :page_count [0]
                                        :current_page [1]}
                           }))
 
@@ -24,15 +24,16 @@
       (.appendChild (.-body js/document) component))))
 
 (defn valid-page? [page-num]
-  (let [page-count (get-in @app-state [:navigation :pdf_page_count 0])]
+  (let [page-count (get-in @app-state [:navigation :page_count 0])]
     (and (> page-num 0) (<= page-num page-count))))
 
 ;; PDFjs helper function
 ;; TODO:
 ;;   * Do the grunt work only once instead of on every render
-(defn render-page [page-num]
-  (let [pdf (:pdf @app-state)]
-    (.then (.getPage pdf page-num)
+(defn render-page []
+  (let [pdf (:pdf @app-state)
+        current_page (get-in @app-state [:navigation :current_page 0])]
+    (.then (.getPage pdf current_page)
            (fn[page]
 
              (let [desiredWidth (:pdf_height @app-state)
@@ -46,38 +47,43 @@
                    renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
 
                ;; TODO: Eval employing the renderTask promise of PDFjs
-               (if (valid-page? page-num)
-                 (do
-                   (.render page renderContext)
-                   (swap! app-state update-in [:navigation :current_page 0] (constantly page-num)))))))))
+               (.render page renderContext))))))
 
 ;; OM Component
 (defn pdf-navigation-position [cursor owner]
   (reify
     om/IRender
     (render [this]
-      (let [current_page (get-in cursor [:current_page 0])]
+      (let [current_page (get-in cursor [:current_page 0])
+            page_count (get-in cursor [:page_count 0])]
         (dom/span nil
-                  (str current_page " of " (get-in cursor [:pdf_page_count 0])))))))
+                  (str current_page " of " page_count))))))
 
 (defn pdf-navigation-buttons [cursor owner]
   (reify
     om/IRender
     (render [this]
-      (dom/span nil
-        (dom/button #js {:onClick (fn[e]
-                                    (render-page (dec 2)))}
-                    "<")
-        (dom/button #js {:onClick (fn[e]
-                                    (render-page (inc 1)))}
-                    ">")))))
+      (let [current_page (get-in cursor [:current_page 0])]
+        (dom/span nil
+          (dom/button #js {:onClick (fn[e]
+                                      (if (valid-page? (dec current_page))
+                                        (do
+                                          (om/transact! cursor [:current_page 0] dec)
+                                          (render-page))))}
+                      "<")
+          (dom/button #js {:onClick (fn[e]
+                                      (if (valid-page? (inc current_page))
+                                        (do
+                                          (om/transact! cursor [:current_page 0] inc)
+                                          (render-page))))}
+                      ">"))))))
 
 (defn pdf-navigation-view [cursor owner]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className "navigation"}
-               (om/build pdf-navigation-buttons nil)
+               (om/build pdf-navigation-buttons cursor)
                (om/build pdf-navigation-position cursor)))))
 
 ;; PDFjs
@@ -85,8 +91,8 @@
   (.then (.getDocument js/PDFJS (:pdf_url @app-state))
          (fn[pdf]
            (swap! app-state assoc :pdf pdf)
-           (swap! app-state update-in [:navigation :pdf_page_count 0] #(.-numPages pdf))
-           (render-page 1))))
+           (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
+           (render-page))))
 
 (defn pdf-component-view [cursor owner]
   (reify
