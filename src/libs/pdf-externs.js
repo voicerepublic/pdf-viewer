@@ -4,6 +4,7 @@ var PDFPageProxy = {
 }
 var PDFDocumentProxy = {
   "getPage": function () {},
+  "numPages": function () {},
 }
 var PDFJS = {
     "getDocument": function () {},
