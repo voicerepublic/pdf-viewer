@@ -24,7 +24,7 @@ stylesheet.
 
 ## Screenshot
 
-![pdfjs component screenshot]( "pdfjs component screenshot")
+![pdfjs component screenshot](https://github.com/munen/pdfjs_component/raw/master/screenshot.png "pdfjs component screenshot")
 
 ## Copyright and license
 
