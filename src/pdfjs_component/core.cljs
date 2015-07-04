@@ -14,13 +14,13 @@
                                        :current_page [1]}
                           }))
 
-(def canvas-chan (chan))
-
 ;; Webcomponent
-(cond
+;; TODO: Use defonce
+(if
   (not (.. js/document (querySelector "x-pdf-component")))
-  ((def PDFComponent (.registerElement js/document "x-pdf-component"))
-  (let [component (PDFComponent.)]
+  (do
+    (def PDFComponent (.registerElement js/document "x-pdf-component"))
+    (let [component (PDFComponent.)]
       (.appendChild (.-body js/document) component))))
 
 (defn valid-page? [page-num]
@@ -52,26 +52,47 @@
                    (swap! app-state update-in [:navigation :current_page 0] (constantly page-num)))))))))
 
 ;; OM Component
-(defn pdf-navigation-view [cursor owner]
+(defn pdf-navigation-position [cursor owner]
   (reify
     om/IRender
     (render [this]
       (let [current_page (get-in cursor [:current_page 0])]
-        (dom/div #js {:className "navigation"}
-                 (dom/button #js {:onClick (fn[e]
-                                             (render-page (dec current_page)))}
-                             "<")
-                 (dom/span nil
-                           (str current_page " of " (get-in cursor [:pdf_page_count 0])))
-                 (dom/button #js {:onClick (fn[e]
-                                             (render-page (inc current_page)))}
-                             ">"))))))
+        (dom/span nil
+                  (str current_page " of " (get-in cursor [:pdf_page_count 0])))))))
+
+(defn pdf-navigation-buttons [cursor owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/span nil
+        (dom/button #js {:onClick (fn[e]
+                                    (render-page (dec 2)))}
+                    "<")
+        (dom/button #js {:onClick (fn[e]
+                                    (render-page (inc 1)))}
+                    ">")))))
+
+(defn pdf-navigation-view [cursor owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className "navigation"}
+               (om/build pdf-navigation-buttons nil)
+               (om/build pdf-navigation-position cursor)))))
+
+;; PDFjs
+(defn render-pdfjs []
+  (.then (.getDocument js/PDFJS (:pdf_url @app-state))
+         (fn[pdf]
+           (swap! app-state assoc :pdf pdf)
+           (swap! app-state update-in [:navigation :pdf_page_count 0] #(.-numPages pdf))
+           (render-page 1))))
 
 (defn pdf-component-view [cursor owner]
   (reify
     om/IDidMount
     (did-mount [_]
-      (put! canvas-chan "available"))
+      (render-pdfjs))
     om/IRender
     (render [this]
       (dom/div #js {:id "om-root"}
@@ -102,18 +123,7 @@
     (attach-om-root)
     ) 250)
 
-;; PDFjs
 
-(go (<! (timeout 10))
-    (let [msg (<! canvas-chan)]
-      (cond
-        (= msg "available")
-        (.then (.getDocument js/PDFJS (:pdf_url @app-state))
-               (fn[pdf]
-                 (swap! app-state assoc :pdf pdf)
-                 (swap! app-state update-in [:navigation :pdf_page_count 0] #(.-numPages pdf))
-                 (render-page 1)))
-        :else (println ("Unknown message" msg)))))
 
 (comment
 
