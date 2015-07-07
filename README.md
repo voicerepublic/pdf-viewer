@@ -1,11 +1,17 @@
 # PDFjs Component
 
-A [React](http://facebook.github.io/react/) component providing a convenient
-PDF viewer based on [PDFjs](https://github.com/mozilla/pdf.js). Written in
-[ClojureScript](http://github.com/clojure/clojurescript).
+A Web Component based on [HTML5 Custom Element](https://w3c.github.io/webcomponents/spec/custom/)
+containing a [React](http://facebook.github.io/react/) component providing a
+convenient PDF viewer based on [PDFjs](https://github.com/mozilla/pdf.js).
 
-The component enables you to use a new HTML tag `pdf-viewer` that can be
-configured with the attributes `src`, `height` and `width`. Easy as that.
+If that weren't enough trendy buzzwords, the whole thing is written in
+[ClojureScript](http://github.com/clojure/clojurescript) employing
+[Figwheel](https://github.com/bhauman/lein-figwheel) for an awesome development
+experience.
+
+The Custom Element Web Component enables using a new HTML tag `pdf-viewer`
+that can be configured with the attributes `src`, `height` and `width`. Easy as
+that.
 
 ## Usage
 
@@ -20,11 +26,29 @@ Please note that you should have `pdfjs_component.worker.js` in the same
 directory as `pdfjs_component.js`.
 
 Optionally you can use the `style.css` file, or you might chose bring your own
-stylesheet.
+style sheet.
+
+### API
+
+The Web Components' API can be customised. Soon this will enable calling the
+component from the outside to flick through pages. Right now there's only a
+stubbed method that can be called like this:
+
+```javascript
+document.querySelector("pdf-viewer").public_method_1()
+```
 
 ## Screenshot
 
 ![pdfjs component screenshot](https://github.com/munen/pdfjs_component/raw/master/screenshot.png "pdfjs component screenshot")
+
+## Todos
+
+  * [ ] Observe current_page state change instead of explicit render
+  * [ ] Use `core.async` for switching pages
+  * [ ] Write a public API for switching pages employing `core.async`
+  * [ ] Use the current scope of `.createdCallback` to read the attributes of
+        the component instead of `get-attr`
 
 ## Copyright and license
 

@@ -110,37 +110,36 @@
 (defn get-attr[attr]
   (.. (.querySelector js/document "pdf-viewer") (getAttribute attr)))
 
-(defn main []
+(defn initialise-webcomponent []
   (let [proto (.create js/Object (.-prototype js/HTMLElement))]
+    (aset proto "public_method_1" (fn [] (.log js/console "I am a stub for a public API!")))
     (aset proto "createdCallback" (fn []
-                                    (do
-    (.log js/console "once")
-                                      (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
-                                      (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
-                                      (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
-                                      (attach-om-root)
-                                      )))
+                                    ; safeguard! createdCallback will trigger
+                                    ; twice. reason: unfortunately unknown.
+                                    (if (nil? (@app-state :pdf_url))
+                                      (do
+                                        ; read attributes of webcomponent element
+                                        (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
+                                        (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
+                                        (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))))))
 
-    (let [PDFComponent (.registerElement js/document "pdf-viewer" #js {:prototype proto})
-          component (PDFComponent.)]
-      (.log js/console component)
-
-
-      (.appendChild (.-body js/document) component))))
+    (let [PDFComponent (.registerElement js/document "pdf-viewer" #js {:prototype proto})]
+      (PDFComponent.))))
 
 
-(defonce initial-run (main))
+; Enable Figwheel reloading by checking whether the Web Component has already
+; been initialised. Yeah, this _does_ look terrible.
+(if (not (.. (.-prototype js/HTMLElement) (isPrototypeOf
+                                       (.. js/Object (getPrototypeOf
+                                                       (.. js/document (querySelector "pdf-viewer")))))))
+  (initialise-webcomponent))
+
+(attach-om-root)
 
 
 (comment
 
   (in-ns 'pdfjs_component.core)
 
-  ; TODOs:
-  ;      * Observe current_page state change instead of explicit render
-
-  (constantly 5)
-
-  (swap! app-state update-in [:navigation :page_count 0] inc)
 
   )
