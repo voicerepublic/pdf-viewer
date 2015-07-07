@@ -1,11 +1,12 @@
 (defproject pdfjs_component "0.1.0-SNAPSHOT"
   :description "PDFjs wrapped into a webcomponent composed of Om components"
-  :url "http://example.com/FIXME"
+  :url "https://github.com/munen/pdfjs_component"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-3211"]
+                 [cljsjs/document-register-element "0.4.3-0"]
                  [org.omcljs/om "0.8.8"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
 
@@ -14,6 +15,7 @@
 
   :source-paths ["src"]
 
+  ; Compiling PDFjs inline requires enough memory
   :jvm-opts ^:replace ["-Xms1024m" "-Xmx1024m" "-server"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]

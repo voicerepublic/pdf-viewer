@@ -3,7 +3,8 @@
   (:require [om.core :as om]
             [om.dom :as dom]
             [cljs.core.async :refer [put! chan <! timeout]]
-            [pdfjs]))
+            [pdfjs]
+            [cljsjs.document-register-element]))
 
 (enable-console-print!)
 
@@ -13,6 +14,7 @@
                                        :page_count [0]
                                        :current_page [1]}
                           }))
+
 
 (defn valid-page? [page-num]
   (let [page-count (get-in @app-state [:navigation :page_count 0])]
@@ -31,7 +33,7 @@
                    viewport (.getViewport page 1)
                    scale (/ desiredWidth (.-width viewport))
                    scaledViewport (.getViewport page (* 1.35 scale))
-                   canvas (.. js/document (querySelector "x-pdf-component") (querySelector "canvas"))
+                   canvas (.. js/document (querySelector "pdf-viewer") (querySelector "canvas"))
                    context (.getContext canvas "2d")
                    height (.-height viewport)
                    width (.-width viewport)
@@ -103,23 +105,28 @@
 
 (defn attach-om-root []
   (om/root pdf-component-view app-state
-           {:target (.. js/document (querySelector "x-pdf-component"))}))
+           {:target (.. js/document (querySelector "pdf-viewer"))}))
 
 (defn get-attr[attr]
-  (.. (.querySelector js/document "x-pdf-component") (getAttribute attr)))
+  (.. (.querySelector js/document "pdf-viewer") (getAttribute attr)))
 
 (defn main []
-  (js/setTimeout
-    (fn[]
-      ; TODO: This could be done in the .createdCallback handler when registering
-      ; the web-component
-      (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
-      (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
-      (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
-      ; TODO: This works, but there is a callback from the Webcomponent that
-      ; tells when it is ready!
-      (attach-om-root)
-      ) 250))
+  (let [proto (.create js/Object (.-prototype js/HTMLElement))]
+    (aset proto "createdCallback" (fn []
+                                    (do
+    (.log js/console "once")
+                                      (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
+                                      (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
+                                      (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))
+                                      (attach-om-root)
+                                      )))
+
+    (let [PDFComponent (.registerElement js/document "pdf-viewer" #js {:prototype proto})
+          component (PDFComponent.)]
+      (.log js/console component)
+
+
+      (.appendChild (.-body js/document) component))))
 
 
 (defonce initial-run (main))
@@ -130,6 +137,10 @@
   (in-ns 'pdfjs_component.core)
 
   ; TODOs:
-  ;      *
+  ;      * Observe current_page state change instead of explicit render
+
+  (constantly 5)
+
+  (swap! app-state update-in [:navigation :page_count 0] inc)
 
   )

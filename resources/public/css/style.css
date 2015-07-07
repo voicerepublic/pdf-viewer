@@ -1,14 +1,14 @@
-x-pdf-component #om-root {
+pdf-viewer #om-root {
   background-color: lightgrey;
   border: 5px solid lightgrey;
 }
 
 
-x-pdf-component #om-root .navigation {
+pdf-viewer #om-root .navigation {
   text-align: center;
   padding: 5px;
 }
 
-x-pdf-component #om-root .navigation .navButtons {
+pdf-viewer #om-root .navigation .navButtons {
   float: right;
 }

@@ -4,7 +4,7 @@ A [React](http://facebook.github.io/react/) component providing a convenient
 PDF viewer based on [PDFjs](https://github.com/mozilla/pdf.js). Written in
 [ClojureScript](http://github.com/clojure/clojurescript).
 
-The component enables you to use a new HTML tag `x-pdf-component` that can be
+The component enables you to use a new HTML tag `pdf-viewer` that can be
 configured with the attributes `src`, `height` and `width`. Easy as that.
 
 ## Usage
@@ -12,7 +12,7 @@ configured with the attributes `src`, `height` and `width`. Easy as that.
 There is a working demo in the folder `dist`.
 
 ```html
-<x-pdf-component src="your_pdf.pdf" height="480" width="640"></x-pdf-component>
+<pdf-viewer src="your_pdf.pdf" height="480" width="640"></pdf-viewer>
 <script src="pdfjs_component.js" type="text/javascript"></script>
 ```
 
