@@ -1,21 +1,29 @@
 # PDFjs Component
 
-A Web Component based on [HTML5 Custom Element](https://w3c.github.io/webcomponents/spec/custom/)
-containing a [React](http://facebook.github.io/react/) component providing a
-convenient PDF viewer based on [PDFjs](https://github.com/mozilla/pdf.js).
+A Web Component based on [HTML5 Custom
+Element](https://w3c.github.io/webcomponents/spec/custom/) containing a
+[React](http://facebook.github.io/react/) component providing a convenient PDF
+viewer based on [PDFjs](https://github.com/mozilla/pdf.js).  Since Custom
+Elements are not yet [supported in all
+browsers](http://caniuse.com/#feat=custom-elements), this project uses
+[Webreflections
+document-register-element](https://github.com/WebReflection/document-register-element)
+library.
 
 If that weren't enough trendy buzzwords, the whole thing is written in
 [ClojureScript](http://github.com/clojure/clojurescript) employing
 [Figwheel](https://github.com/bhauman/lein-figwheel) for an awesome development
-experience.
+experience. Also it's not actually written in React, but in
+[OM](https://github.com/omcljs/om), a ClojureScript interface to React.
 
-The Custom Element Web Component enables using a new HTML tag `pdf-viewer`
-that can be configured with the attributes `src`, `height` and `width`. Easy as
-that.
+All in all this enables using a new HTML tag `pdf-viewer` that can be
+configured with the attributes `src`, `height` and `width`. Easy as that.
 
 ## Usage
 
-There is a working demo in the folder `dist`.
+There is a working demo in the folder `dist`. You can go there and serve the
+folder locally for testing purposes. Also you can use the assets in there to
+copy them to the project where you might want to employ `pdfjs_component`.
 
 ```html
 <pdf-viewer src="your_pdf.pdf" height="480" width="640"></pdf-viewer>
@@ -41,6 +49,22 @@ document.querySelector("pdf-viewer").public_method_1()
 ## Screenshot
 
 ![pdfjs component screenshot](https://github.com/munen/pdfjs_component/raw/master/screenshot.png "pdfjs component screenshot")
+
+## Get Started
+
+You only need to install one tool, the Clojure project automation project
+[Leiningen](http://leiningen.org/).
+
+* OSX
+  * `brew install leiningen`
+
+* Debian
+  * `apt-get install leiningen`
+
+Then clone this repository, `cd` into it and run `lein figwheel`. This will
+download all dependencies(see `project.clj` file if you're interested) and
+start a local webserver so that you can access the project on
+`http://localhost:3449/`.
 
 ## Todos
 

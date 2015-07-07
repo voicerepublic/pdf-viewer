@@ -10,38 +10,45 @@
 
 (defonce app-state (atom {:pdf nil
                           :pdf_url nil
-                          :navigation {
-                                       :page_count [0]
-                                       :current_page [1]}
-                          }))
+                          :navigation {:page_count [0]
+                                       :current_page [1]}}))
 
-
-(defn valid-page? [page-num]
-  (let [page-count (get-in @app-state [:navigation :page_count 0])]
-    (and (> page-num 0) (<= page-num page-count))))
-
-;; PDFjs helper function
-;; TODO:
-;;   * Do the grunt work only once instead of on every render
+; PDFjs helper functions
+; TODO: Do the grunt work only once instead of on every render
 (defn render-page []
   (let [pdf (:pdf @app-state)
         current_page (get-in @app-state [:navigation :current_page 0])]
     (.then (.getPage pdf current_page)
-           (fn[page]
+           (fn [page]
 
              (let [desiredWidth (:pdf_height @app-state)
                    viewport (.getViewport page 1)
                    scale (/ desiredWidth (.-width viewport))
                    scaledViewport (.getViewport page (* 1.35 scale))
-                   canvas (.. js/document (querySelector "pdf-viewer") (querySelector "canvas"))
+                   canvas (-> js/document
+                              (.querySelector "pdf-viewer")
+                              (.querySelector "canvas"))
                    context (.getContext canvas "2d")
                    height (.-height viewport)
                    width (.-width viewport)
                    renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
-               ;; TODO: Eval employing the renderTask promise of PDFjs
+               ; TODO: Eval employing the renderTask promise of PDFjs
                (.render page renderContext))))))
 
-;; OM Component
+
+; OM Component helper functions
+(defn valid-page? [page-num]
+  (let [page-count (get-in @app-state [:navigation :page_count 0])]
+    (and (> page-num 0) (<= page-num page-count))))
+
+(defn render-page-if-valid [cursor f]
+  (let [current_page (get-in cursor [:current_page 0])]
+    (if (valid-page? (f current_page))
+      (do
+        (om/transact! cursor [:current_page 0] f)
+        (render-page)))))
+
+; OM Components
 (defn pdf-navigation-position [cursor owner]
   (reify
     om/IRender
@@ -51,23 +58,16 @@
         (dom/span #js {:className "pageCount" }
                   (str current_page " of " page_count))))))
 
-(defn render-page-if-valid [cursor f]
-  (let [current_page (get-in cursor [:current_page 0])]
-    (if (valid-page? (f current_page))
-      (do
-        (om/transact! cursor [:current_page 0] f)
-        (render-page)))))
-
 (defn pdf-navigation-buttons [cursor owner]
   (reify
     om/IRender
     (render [this]
       (let [current_page (get-in cursor [:current_page 0])]
         (dom/span #js {:className "navButtons" }
-                  (dom/button #js {:onClick (fn[e]
+                  (dom/button #js {:onClick (fn [e]
                                               (render-page-if-valid cursor dec))}
                               "<")
-                  (dom/button #js {:onClick (fn[e]
+                  (dom/button #js {:onClick (fn [e]
                                               (render-page-if-valid cursor inc))}
                               ">"))))))
 
@@ -84,7 +84,7 @@
     om/IDidMount
     (did-mount [_]
       (.then (.getDocument js/PDFJS (:pdf_url @app-state))
-             (fn[pdf]
+             (fn [pdf]
                (swap! app-state assoc :pdf pdf)
                (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
                (render-page))))
@@ -105,10 +105,15 @@
 
 (defn attach-om-root []
   (om/root pdf-component-view app-state
-           {:target (.. js/document (querySelector "pdf-viewer"))}))
+           {:target (-> js/document
+                        (.querySelector "pdf-viewer"))}))
 
+
+; Initialise application
 (defn get-attr[attr]
-  (.. (.querySelector js/document "pdf-viewer") (getAttribute attr)))
+  (-> js/document
+      (.querySelector "pdf-viewer")
+      (.getAttribute attr)))
 
 (defn initialise-webcomponent []
   (let [proto (.create js/Object (.-prototype js/HTMLElement))]
@@ -119,19 +124,17 @@
                                     (if (nil? (@app-state :pdf_url))
                                       (do
                                         ; read attributes of webcomponent element
-                                        (swap! app-state update-in [:pdf_height] (fn[] (get-attr "height")))
-                                        (swap! app-state update-in [:pdf_width] (fn[] (get-attr "width")))
-                                        (swap! app-state update-in [:pdf_url] (fn[] (get-attr "src")))))))
+                                        (swap! app-state update-in [:pdf_height] #(get-attr "height"))
+                                        (swap! app-state update-in [:pdf_width] #(get-attr "width"))
+                                        (swap! app-state update-in [:pdf_url] #(get-attr "src"))))))
 
     (let [PDFComponent (.registerElement js/document "pdf-viewer" #js {:prototype proto})]
       (PDFComponent.))))
 
 
-; Enable Figwheel reloading by checking whether the Web Component has already
-; been initialised. Yeah, this _does_ look terrible.
-(if (not (.. (.-prototype js/HTMLElement) (isPrototypeOf
-                                       (.. js/Object (getPrototypeOf
-                                                       (.. js/document (querySelector "pdf-viewer")))))))
+; Initialise Web Component, whilst thinking of Figwheel by checking whether the
+; Web Component has already been initialised.
+(if (nil? (@app-state :pdf_url))
   (initialise-webcomponent))
 
 (attach-om-root)
