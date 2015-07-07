@@ -68,6 +68,7 @@ start a local webserver so that you can access the project on
 
 ## Todos
 
+  * [ ] Minify the PDFjs worker using Google Closure
   * [ ] Employ proper Clojure namespacing
   * [ ] Observe current_page state change instead of explicit render
   * [ ] Use `core.async` for switching pages
