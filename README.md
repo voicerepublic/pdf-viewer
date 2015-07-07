@@ -68,6 +68,7 @@ start a local webserver so that you can access the project on
 
 ## Todos
 
+  * [ ] Employ proper Clojure namespacing
   * [ ] Observe current_page state change instead of explicit render
   * [ ] Use `core.async` for switching pages
   * [ ] Write a public API for switching pages employing `core.async`
