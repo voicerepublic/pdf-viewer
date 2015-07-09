@@ -1,4 +1,4 @@
-# PDFjs Component
+# `<pdf-viewer>`
 
 This project gives you a new HTML tag `<pdf-viewer>` that can be configured
 with the attributes `src`, `height` and `width`. Easy as that.
