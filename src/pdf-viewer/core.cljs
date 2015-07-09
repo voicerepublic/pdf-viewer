@@ -131,14 +131,15 @@
     (let [PDFComponent (.registerElement js/document "pdf-viewer" #js {:prototype proto})]
       (PDFComponent.))))
 
-
-; Initialise Web Component, whilst thinking of Figwheel by checking whether the
-; Web Component has already been initialised.
-(if (nil? (@app-state :pdf_url))
-  (initialise-webcomponent))
-
-(attach-om-root)
-
+; Initialise Web Component and OM, whilst
+; * Thinking of Figwheel by checking whether the Web Component has already been
+;   initialised.
+; * Checking whether there's actually a <pdf-viewer> element on the page
+(if (not (nil? (-> js/document (.querySelector "pdf-viewer"))))
+  (do
+    (if (nil? (@app-state :pdf_url))
+      (initialise-webcomponent))
+    (attach-om-root)))
 
 (comment
 
