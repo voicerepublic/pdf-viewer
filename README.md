@@ -34,7 +34,7 @@ your `</body>` element.
 <script src="pdf-viewer.js" type="text/javascript"></script>
 ```
 
-Then, whereever you want to render a PDF viewer, insert the tag, configure the
+Then, wherever you want to render a PDF viewer, insert the tag, configure the
 link to your PDF and give it a width and height:
 
 ```html
