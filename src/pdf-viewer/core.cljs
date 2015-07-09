@@ -86,7 +86,6 @@
     (did-mount [_]
       (if (not (nil? (:pdf_workerSrc @app-state)))
         (do
-          (println "Setting workerSrc")
           (aset js/PDFJS "workerSrc" (:pdf_workerSrc @app-state))))
       (.then (.getDocument js/PDFJS (:pdf_url @app-state))
              (fn [pdf]
