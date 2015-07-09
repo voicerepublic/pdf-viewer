@@ -1,8 +1,11 @@
 # PDFjs Component
 
-A Web Component based on [HTML5 Custom
+This project gives you a new HTML tag `<pdf-viewer>` that can be configured
+with the attributes `src`, `height` and `width`. Easy as that.
+
+More specifically, this is a Web Component based on [HTML5 Custom
 Element](https://w3c.github.io/webcomponents/spec/custom/) containing a
-[React](http://facebook.github.io/react/) component providing a convenient PDF
+[React](http://facebook.github.io/react/) component providing a PDF
 viewer based on [PDFjs](https://github.com/mozilla/pdf.js).  Since Custom
 Elements are not yet [supported in all
 browsers](http://caniuse.com/#feat=custom-elements), this project uses
@@ -16,22 +19,31 @@ If that weren't enough trendy buzzwords, the whole thing is written in
 experience. Also it's not actually written in React, but in
 [OM](https://github.com/omcljs/om), a ClojureScript interface to React.
 
-All in all this enables using a new HTML tag `pdf-viewer` that can be
-configured with the attributes `src`, `height` and `width`. Easy as that.
-
 ## Usage
 
 There is a working demo in the folder `dist`. You can go there and serve the
-folder locally for testing purposes. Also you can use the assets in there to
-copy them to the project where you might want to employ `pdf-viewer`.
+folder locally(for example with `python -m SimpleHTTPServer`) for testing
+purposes. Also you can use the assets in there and copy them to the project
+where you might want to employ `pdf-viewer`.
+
+To enable the `<pdf-viewer>` tag in your project, you need to include the
+[pdf-viewer.js](dist/pdf-viewer.js) JavaScript file, preferably just before
+your `</body>` element.
 
 ```html
-<pdf-viewer src="your_pdf.pdf" height="480" width="640"></pdf-viewer>
 <script src="pdf-viewer.js" type="text/javascript"></script>
 ```
 
-Please note that you should have `pdf-viewer.worker.js` in the same
-directory as `pdf-viewer.js`.
+Then, whereever you want to render a PDF viewer, insert the tag, configure the
+link to your PDF and give it a width and height:
+
+```html
+<pdf-viewer src="your_pdf.pdf" height="480" width="640"></pdf-viewer>
+```
+
+Please note that you should have `pdf-viewer.worker.js` in the same directory
+as `pdf-viewer.js`. If you do not fancy that, you can optionally set a
+`workerSrc` attribute on `<pdf-viewer>` for the PDFjs worker.
 
 Optionally you can use the `style.css` file, or you might chose bring your own
 style sheet.

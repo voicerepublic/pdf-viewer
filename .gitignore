@@ -5,6 +5,7 @@ pom.xml
 /lib/
 /classes/
 /out/
+/dist/out/
 /target/
 .lein-deps-sum
 .lein-repl-history
