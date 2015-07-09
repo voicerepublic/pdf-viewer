@@ -23,15 +23,15 @@ configured with the attributes `src`, `height` and `width`. Easy as that.
 
 There is a working demo in the folder `dist`. You can go there and serve the
 folder locally for testing purposes. Also you can use the assets in there to
-copy them to the project where you might want to employ `pdfjs_component`.
+copy them to the project where you might want to employ `pdf-viewer`.
 
 ```html
 <pdf-viewer src="your_pdf.pdf" height="480" width="640"></pdf-viewer>
-<script src="pdfjs_component.js" type="text/javascript"></script>
+<script src="pdf-viewer.js" type="text/javascript"></script>
 ```
 
-Please note that you should have `pdfjs_component.worker.js` in the same
-directory as `pdfjs_component.js`.
+Please note that you should have `pdf-viewer.worker.js` in the same
+directory as `pdf-viewer.js`.
 
 Optionally you can use the `style.css` file, or you might chose bring your own
 style sheet.
@@ -48,7 +48,7 @@ document.querySelector("pdf-viewer").public_method_1()
 
 ## Screenshot
 
-![pdfjs component screenshot](https://github.com/munen/pdfjs_component/raw/master/screenshot.png "pdfjs component screenshot")
+![pdfjs component screenshot](https://github.com/munen/pdf-viewer/raw/master/screenshot.png "pdfjs component screenshot")
 
 ## Get Started
 

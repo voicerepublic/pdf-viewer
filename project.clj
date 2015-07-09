@@ -1,6 +1,6 @@
-(defproject pdfjs_component "0.1.0-SNAPSHOT"
+(defproject pdf-viewer "0.1.0-SNAPSHOT"
   :description "PDFjs wrapped into a webcomponent composed of Om components"
-  :url "https://github.com/munen/pdfjs_component"
+  :url "https://github.com/munen/pdf-viewer"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
@@ -24,11 +24,11 @@
     :builds [{:id "dev"
               :source-paths ["src"]
 
-              :figwheel { :on-jsload "pdfjs_component.core/on-js-reload" }
+              :figwheel { :on-jsload "pdf-viewer.core/on-js-reload" }
 
-              :compiler {:main pdfjs_component.core
+              :compiler {:main pdf-viewer.core
                          :asset-path "js/compiled/out"
-                         :output-to "resources/public/js/compiled/pdfjs_component.js"
+                         :output-to "resources/public/js/compiled/pdf-viewer.js"
                          :externs ["src/libs/pdf-externs.js"]
                          :foreign-libs [
                                         {:file "src/libs/pdf.js"
@@ -38,8 +38,8 @@
                          :source-map-timestamp true }}
              {:id "min"
               :source-paths ["src"]
-              :compiler {:output-to "dist/pdfjs_component.js"
-                         :main pdfjs_component.core
+              :compiler {:output-to "dist/pdf-viewer.js"
+                         :main pdf-viewer.core
                          :externs ["src/libs/pdf-externs.js"]
                          :foreign-libs [
                                         {:file "src/libs/pdf.js"

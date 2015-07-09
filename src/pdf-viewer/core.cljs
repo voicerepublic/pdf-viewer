@@ -1,4 +1,4 @@
-(ns ^:figwheel-always pdfjs_component.core
+(ns ^:figwheel-always pdf-viewer.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om]
             [om.dom :as dom]
@@ -142,7 +142,7 @@
 
 (comment
 
-  (in-ns 'pdfjs_component.core)
+  (in-ns 'pdf-viewer.core)
 
 
   )
