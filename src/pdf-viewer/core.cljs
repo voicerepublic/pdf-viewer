@@ -10,6 +10,7 @@
 
 (defonce app-state (atom {:pdf nil
                           :pdf_url nil
+                          :pdf_workerSrc nil
                           :navigation {:page_count [0]
                                        :current_page [1]}}))
 
@@ -83,6 +84,10 @@
   (reify
     om/IDidMount
     (did-mount [_]
+      (if (not (nil? (:pdf_workerSrc @app-state)))
+        (do
+          (println "Setting workerSrc")
+          (aset js/PDFJS "workerSrc" (:pdf_workerSrc @app-state))))
       (.then (.getDocument js/PDFJS (:pdf_url @app-state))
              (fn [pdf]
                (swap! app-state assoc :pdf pdf)
@@ -126,6 +131,7 @@
                                         ; read attributes of webcomponent element
                                         (swap! app-state update-in [:pdf_height] #(get-attr "height"))
                                         (swap! app-state update-in [:pdf_width] #(get-attr "width"))
+                                        (swap! app-state update-in [:pdf_workerSrc] #(get-attr "workerSrc"))
                                         (swap! app-state update-in [:pdf_url] #(get-attr "src"))))))
 
     (let [PDFComponent (.registerElement js/document "pdf-viewer" #js {:prototype proto})]
