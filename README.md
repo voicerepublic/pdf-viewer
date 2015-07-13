@@ -80,6 +80,7 @@ http://localhost:3449/
 
 ## Todos
 
+  * [ ] Write tests
   * [ ] Minify the PDFjs worker using Google Closure
   * [ ] Employ proper Clojure namespacing
   * [ ] Observe current_page state change instead of explicit render
