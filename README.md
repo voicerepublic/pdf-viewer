@@ -76,7 +76,7 @@ You only need to install one tool, the Clojure project automation project
 Then clone this repository, `cd` into it and run `lein figwheel`. This will
 download all dependencies(see `project.clj` file if you're interested) and
 start a local webserver so that you can access the project on
-`http://localhost:3449/`.
+http://localhost:3449/
 
 ## Todos
 
