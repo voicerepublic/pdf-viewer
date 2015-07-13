@@ -14,6 +14,8 @@
                           :navigation {:page_count [0]
                                        :current_page [1]}}))
 
+(def height-factor 1.13)
+
 ; PDFjs helper functions
 ; TODO: Do the grunt work only once instead of on every render
 (defn render-page []
@@ -21,19 +23,19 @@
         current_page (get-in @app-state [:navigation :current_page 0])]
     (.then (.getPage pdf current_page)
            (fn [page]
-
-             (let [desiredWidth (:pdf_height @app-state)
+             (let [desiredWidth (:pdf_width @app-state)
                    viewport (.getViewport page 1)
-                   scale (/ desiredWidth (.-width viewport))
-                   scaledViewport (.getViewport page (* 1.35 scale))
+                   height (.-height viewport)
+                   width (.-width viewport)
+                   scale (/ desiredWidth width)
+                   scaledViewport (.getViewport page scale)
                    canvas (-> js/document
                               (.querySelector "pdf-viewer")
                               (.querySelector "canvas"))
                    context (.getContext canvas "2d")
-                   height (.-height viewport)
-                   width (.-width viewport)
                    renderContext (js-obj "canvasContext" context "viewport" scaledViewport)]
                ; TODO: Eval employing the renderTask promise of PDFjs
+               (aset canvas "height" (/ height height-factor))
                (.render page renderContext))))))
 
 
