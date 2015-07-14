@@ -80,6 +80,7 @@ http://localhost:3449/
 
 ## Todos
 
+  * [ ] document attribute `workerSrc` in README
   * [ ] Write tests
   * [ ] Minify the PDFjs worker using Google Closure
   * [ ] Employ proper Clojure namespacing
