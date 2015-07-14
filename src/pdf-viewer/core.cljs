@@ -14,6 +14,7 @@
                           :navigation {:page_count [0]
                                        :current_page [1]}}))
 
+;; empirically determined magic factor to remove white space below pdf
 (def height-factor 1.13)
 
 ; PDFjs helper functions
@@ -96,8 +97,7 @@
                (render-page))))
     om/IRender
     (render [this]
-      (dom/canvas #js {:height (:pdf_height @app-state)
-                       :width (:pdf_width @app-state)}))))
+      (dom/canvas #js {:width (:pdf_width @app-state)}))))
 
 (defn pdf-component-view [cursor owner]
   (reify
@@ -130,7 +130,6 @@
                                     (if (nil? (@app-state :pdf_url))
                                       (do
                                         ; read attributes of webcomponent element
-                                        (swap! app-state update-in [:pdf_height] #(get-attr "height"))
                                         (swap! app-state update-in [:pdf_width] #(get-attr "width"))
                                         (swap! app-state update-in [:pdf_workerSrc] #(get-attr "workerSrc"))
                                         (swap! app-state update-in [:pdf_url] #(get-attr "src"))))))

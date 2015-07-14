@@ -1,7 +1,7 @@
 # `<pdf-viewer>`
 
 This project gives you a new HTML tag `<pdf-viewer>` that can be configured
-with the attributes `src`, `height` and `width`. Easy as that.
+with the attributes `src` and `width`. Easy as that.
 
 More specifically, this is a Web Component based on [HTML5 Custom
 Element](https://w3c.github.io/webcomponents/spec/custom/) containing a
@@ -35,10 +35,10 @@ your `</body>` element.
 ```
 
 Then, wherever you want to render a PDF viewer, insert the tag, configure the
-link to your PDF and give it a width and height:
+link to your PDF and give it a width:
 
 ```html
-<pdf-viewer src="your_pdf.pdf" height="480" width="640"></pdf-viewer>
+<pdf-viewer src="your_pdf.pdf" width="640"></pdf-viewer>
 ```
 
 Please note that you should have `pdf-viewer.worker.js` in the same directory
