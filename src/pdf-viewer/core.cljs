@@ -11,6 +11,7 @@
 (defonce app-state (atom {:pdf nil
                           :pdf_url nil
                           :pdf_workerSrc nil
+                          :progress { :loading [0] }
                           :navigation {:page_count [0]
                                        :current_page [1]}}))
 
@@ -60,7 +61,9 @@
       (let [current_page (get-in cursor [:current_page 0])
             page_count (get-in cursor [:page_count 0])]
         (dom/span #js {:className "pageCount" }
-                  (str current_page " of " page_count))))))
+                  (if (= 0 page_count)
+                    "Loading"
+                    (str current_page " of " page_count)))))))
 
 (defn pdf-navigation-buttons [cursor owner]
   (reify
@@ -83,10 +86,6 @@
                (om/build pdf-navigation-buttons cursor)
                (om/build pdf-navigation-position cursor)))))
 
-(defn render-dl-progress [progress]
-  (.log js/console "loaded: "
-        (/ (.-loaded progress) (.-total progress))))
-
 (defn pdfjs-viewer [cursor owner]
   (reify
     om/IDidMount
@@ -96,7 +95,9 @@
           (aset js/PDFJS "workerSrc" (:pdf_workerSrc @app-state))))
       (let [loadingTask (.getDocument js/PDFJS (:pdf_url @app-state))]
 
-        (aset loadingTask "onProgress" (fn [progress] (render-dl-progress progress)))
+        (aset loadingTask "onProgress" (fn [progress] (om/update! cursor
+                                                             [:progress :loading 0]
+                                                             (/ (.-loaded progress) (.-total progress)))))
         (.then loadingTask (fn [pdf]
                  (swap! app-state assoc :pdf pdf)
                  (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
@@ -104,6 +105,15 @@
     om/IRender
     (render [this]
       (dom/canvas #js {:width (:pdf_width @app-state)}))))
+
+(defn pdf-progress-view [cursor owner]
+  (reify
+    om/IRender
+    (render [this]
+      (let [progress (get-in cursor [:loading 0])]
+        (dom/span #js {:className "progress" }
+                  (if (not (= progress 1))
+                    (str (js/parseInt (* 100 progress)) "%")))))))
 
 (defn pdf-component-view [cursor owner]
   (reify
@@ -113,7 +123,8 @@
                     :style #js { :width (:pdf_width @app-state)}}
                (dom/div #js {:className "menu" }
                         (om/build pdf-navigation-view (cursor :navigation)))
-               (om/build pdfjs-viewer cursor)))))
+               (om/build pdfjs-viewer cursor)
+               (om/build pdf-progress-view (cursor :progress))))))
 
 (defn attach-om-root []
   (om/root pdf-component-view app-state
