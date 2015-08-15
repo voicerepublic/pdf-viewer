@@ -96,12 +96,12 @@
       (let [loadingTask (.getDocument js/PDFJS (:pdf_url @app-state))]
 
         (aset loadingTask "onProgress" (fn [progress] (om/update! cursor
-                                                             [:progress :loading 0]
-                                                             (/ (.-loaded progress) (.-total progress)))))
+                                                                  [:progress :loading 0]
+                                                                  (/ (.-loaded progress) (.-total progress)))))
         (.then loadingTask (fn [pdf]
-                 (swap! app-state assoc :pdf pdf)
-                 (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
-                 (render-page)))))
+                             (swap! app-state assoc :pdf pdf)
+                             (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
+                             (render-page)))))
     om/IRender
     (render [this]
       (dom/canvas #js {:width (:pdf_width @app-state)}))))
