@@ -83,6 +83,10 @@
                (om/build pdf-navigation-buttons cursor)
                (om/build pdf-navigation-position cursor)))))
 
+(defn render-dl-progress [progress]
+  (.log js/console "loaded: "
+        (/ (.-loaded progress) (.-total progress))))
+
 (defn pdfjs-viewer [cursor owner]
   (reify
     om/IDidMount
@@ -90,11 +94,13 @@
       (if (not (nil? (:pdf_workerSrc @app-state)))
         (do
           (aset js/PDFJS "workerSrc" (:pdf_workerSrc @app-state))))
-      (.then (.getDocument js/PDFJS (:pdf_url @app-state))
-             (fn [pdf]
-               (swap! app-state assoc :pdf pdf)
-               (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
-               (render-page))))
+      (let [loadingTask (.getDocument js/PDFJS (:pdf_url @app-state))]
+
+        (aset loadingTask "onProgress" (fn [progress] (render-dl-progress progress)))
+        (.then loadingTask (fn [pdf]
+                 (swap! app-state assoc :pdf pdf)
+                 (swap! app-state update-in [:navigation :page_count 0] #(.-numPages pdf))
+                 (render-page)))))
     om/IRender
     (render [this]
       (dom/canvas #js {:width (:pdf_width @app-state)}))))
