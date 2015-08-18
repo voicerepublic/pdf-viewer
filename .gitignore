@@ -13,3 +13,4 @@ pom.xml
 .repl
 .nrepl-port
 *.swp
+.DS_Store

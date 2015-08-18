@@ -12,3 +12,9 @@ pdf-viewer #om-root .navigation {
 pdf-viewer #om-root .navigation .navButtons {
   float: right;
 }
+
+.progress {
+  margin: 0 auto;
+  display: block;
+  width: 100px;
+}
